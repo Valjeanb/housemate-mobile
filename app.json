@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "HouseMate ",
+    "slug": "housemate",
+    "scheme": "vibecode",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.vibecode.sitterhub-r7pf12",
+      "buildNumber": "3",
+      "infoPlist": {
+        "NSCameraUsageDescription": "HouseMate  uses the camera to capture photos inside the app before you publish them.",
+        "NSPhotoLibraryUsageDescription": "HouseMate  accesses your photo library to let you choose media that appears in the app.",
+        "NSMicrophoneUsageDescription": "HouseMate  uses the microphone to record audio tracks that the app attaches to your creations."
+      }
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e022b4d4-e517-48a4-aa15-ac482840123b"
+      }
+    },
+    "icon": "./icon.png"
+  }
+}
