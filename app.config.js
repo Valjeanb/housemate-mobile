@@ -7,4 +7,11 @@ module.exports = {
     ...base.expo.android,
     package: "com.vibecode.sitterhub",
   },
+  ios: {
+    ...base.expo.ios,
+    infoPlist: {
+      ...base.expo.ios?.infoPlist,
+      ITSAppUsesNonExemptEncryption: false,
+    },
+  },
 };
