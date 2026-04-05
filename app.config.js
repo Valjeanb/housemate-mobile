@@ -9,6 +9,7 @@ module.exports = {
   },
   ios: {
     ...base.expo.ios,
+    buildNumber: "4",
     infoPlist: {
       ...base.expo.ios?.infoPlist,
       ITSAppUsesNonExemptEncryption: false,
