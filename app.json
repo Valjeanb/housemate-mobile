@@ -32,6 +32,12 @@
         "projectId": "e022b4d4-e517-48a4-aa15-ac482840123b"
       }
     },
-    "icon": "./icon.png"
+    "icon": "./icon.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e022b4d4-e517-48a4-aa15-ac482840123b"
+    }
   }
 }
