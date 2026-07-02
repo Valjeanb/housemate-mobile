@@ -1,11 +1,11 @@
 <stack>
-  Expo SDK 53, React Native 0.76.7, bun (not npm).
+  Expo SDK 53, React Native 0.79.6, bun (not npm).
   React Query for server/async state.
   NativeWind + Tailwind v3 for styling.
   react-native-reanimated v3 for animations (preferred over Animated from react-native).
   react-native-gesture-handler for gestures.
   lucide-react-native for icons.
-  All packages are pre-installed. DO NOT install new packages unless they are @expo-google-font packages or pure JavaScript helpers like lodash, dayjs, etc.
+  Adding new packages: prefer @expo-google-fonts/* and pure-JS helpers (lodash, dayjs). For anything with native code, check the Expo SDK 53 compatibility matrix first.
 </stack>
 
 <structure>
@@ -21,15 +21,14 @@
 </typescript>
 
 <environment>
-  You are in Vibecode. The system manages git and the dev server (port 8081).
-  DO NOT: manage git, touch the dev server, or check its state.
-  The user views the app through Vibecode App.
-  The user cannot see the code or interact with the terminal. Do not tell the user to do anything with the code or terminal.
-  You can see logs in the expo.log file.
-  The Vibecode App has tabs like ENV tab, API tab, LOGS tab. You can ask the user to use these tabs to view the logs, add enviroment variables, or give instructions for APIs like OpenAI, Nanobanana, Grok, Elevenlabs, etc. but first try to implement the functionality yourself.
-  The user is likely non-technical, communicate with them in an easy to understand manner.
-  If the user's request is vague or ambitious, scope down to specific functionality. Do everything for them.
-  For images, use URLs from unsplash.com. You can also tell the user they can use the IMAGES tab to generate and uplooad images.
+  Claude Code on Windows (laptop) — and Mac mini when it arrives, syncing source via OneDrive.
+  Source code lives at: `C:\Users\ValjeanBoynton\OneDrive...\Claude Code\Vibecode\SitterHub\mobile\`
+  node_modules is an NTFS junction to: `C:\dev_modules\sitterhub_mobile\` (outside OneDrive). Never run install commands inside the OneDrive project folder without the junction in place — see root `Claude Code\CLAUDE.md`.
+  Dev server: `bunx expo start` from the mobile folder. User runs Expo Go on their phone or simulator.
+  Git: managed by the user. Don't commit on their behalf unless explicitly asked.
+  Logs: `bunx expo start` console output; metro errors land there. Older `expo.log` is a VibeCode-era artifact.
+  Communication: Valjean has hardware/CLI experience, prefers concise updates, dislikes verbose explanations. He CAN see code and run terminal commands — direct him to specifics.
+  For images: prefer unsplash.com URLs for placeholders. Real assets go in `src/assets/` or `assets/`.
 </environment>
 
 
