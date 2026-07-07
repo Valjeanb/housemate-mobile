@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Home, ClipboardList, Settings, LayoutDashboard } from 'lucide-react-native';
+import { Home, ClipboardList, Settings, LayoutDashboard, CalendarDays, ShoppingBasket } from 'lucide-react-native';
 import useAppStore from '@/lib/state/app-store';
 import { SyncStatus } from '@/components/SyncStatus';
 
@@ -56,6 +56,22 @@ export default function TabLayout() {
           title: 'This Week',
           headerTitle: 'Weekly Tasks',
           tabBarIcon: ({ color, size }) => <ClipboardList size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: 'Calendar',
+          headerTitle: 'Household Calendar',
+          tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="shopping"
+        options={{
+          title: 'Shopping',
+          headerTitle: 'Shopping List',
+          tabBarIcon: ({ color, size }) => <ShoppingBasket size={size} color={color} />,
         }}
       />
       <Tabs.Screen

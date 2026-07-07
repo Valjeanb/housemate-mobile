@@ -3,7 +3,20 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Task, CompletionLog, SeasonProfile, UserRole, Category, DEFAULT_CATEGORIES, HowToGuide } from '../types';
+import {
+  Task,
+  CompletionLog,
+  SeasonProfile,
+  UserRole,
+  Category,
+  DEFAULT_CATEGORIES,
+  KIDS_CATEGORY,
+  HowToGuide,
+  HouseholdEvent,
+  ShoppingItem,
+  isTaskVisibleToRole,
+} from '../types';
+import { getTodayString, getWeekStartString, addDaysToDateString, parseDateString } from '../dates';
 import { seedTasks } from '../seed-tasks';
 import * as api from '../api';
 
@@ -61,6 +74,20 @@ interface AppStore {
   getWeekCompletionRate: () => number;
   getMissedCriticalTasks: () => Task[];
 
+  // Household calendar events
+  events: HouseholdEvent[];
+  addEvent: (event: HouseholdEvent) => void;
+  updateEvent: (eventId: string, updates: Partial<HouseholdEvent>) => void;
+  deleteEvent: (eventId: string) => void;
+
+  // Shopping list
+  shoppingItems: ShoppingItem[];
+  addShoppingItem: (name: string) => void;
+  removeShoppingItem: (itemId: string) => void;
+  setItemPurchased: (itemId: string, purchased: boolean) => void; // owner only (enforced in UI)
+  markAllPurchased: () => void; // owner only (enforced in UI)
+  clearPurchasedItems: () => void;
+
   // Initialize with seed data
   initializeWithSeedData: () => void;
 
@@ -76,28 +103,14 @@ interface AppStore {
   mergeSyncUpdate: (data: api.SyncSinceResponse) => void;
 }
 
-// Helper to get today's date string
-const getTodayString = () => {
-  const now = new Date();
-  return now.toISOString().split('T')[0];
-};
+// Date helpers now live in ../dates and use the device's LOCAL timezone —
+// the old toISOString() versions were UTC and rolled the day over at 10-11am AEST.
 
-// Helper to get start of week (Monday)
-const getWeekStartString = () => {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
-  return monday.toISOString().split('T')[0];
-};
-
-// Helper to check if date is in current week
+// Helper to check if date is in current week (YYYY-MM-DD strings compare lexicographically)
 const isInCurrentWeek = (dateString: string) => {
-  const date = new Date(dateString);
-  const weekStart = new Date(getWeekStartString());
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
-  return date >= weekStart && date < weekEnd;
+  const weekStart = getWeekStartString();
+  const weekEnd = addDaysToDateString(weekStart, 7);
+  return dateString >= weekStart && dateString < weekEnd;
 };
 
 // Helper to get the most recent completion date for a task
@@ -124,8 +137,8 @@ const isCustomTaskDueToday = (
   // If never completed, it's due today
   if (!lastCompletion) return true;
 
-  const lastDate = new Date(lastCompletion);
-  const today = new Date(getTodayString());
+  const lastDate = parseDateString(lastCompletion);
+  const today = parseDateString(getTodayString());
 
   // Calculate days since last completion
   const diffTime = today.getTime() - lastDate.getTime();
@@ -147,6 +160,8 @@ const useAppStore = create<AppStore>()(
       tasks: [],
       dailyCompletions: {},
       completionLogs: [],
+      events: [],
+      shoppingItems: [],
       isOnline: false,
       lastSyncAt: null,
       aiGeneratedTask: null,
@@ -270,23 +285,33 @@ const useAppStore = create<AppStore>()(
 
       uncompleteTask: (taskId) => {
         const today = getTodayString();
-        const { userName, userRole } = get();
+        const { userName, userRole, tasks, dailyCompletions } = get();
+        const task = tasks.find((t) => t.id === taskId);
+
+        // Weekly tasks can have been completed on an earlier day this week —
+        // un-completing must clear every day in the current week, not just today.
+        const affectedDates =
+          task?.frequency === 'weekly'
+            ? Object.keys(dailyCompletions).filter(
+                (date) => isInCurrentWeek(date) && dailyCompletions[date].includes(taskId)
+              )
+            : [today];
 
         // Optimistic local update
         set((state) => {
-          const todayCompletions = state.dailyCompletions[today] || [];
-          return {
-            dailyCompletions: {
-              ...state.dailyCompletions,
-              [today]: todayCompletions.filter((id) => id !== taskId),
-            },
-          };
+          const updated = { ...state.dailyCompletions };
+          for (const date of affectedDates) {
+            updated[date] = (updated[date] || []).filter((id) => id !== taskId);
+          }
+          return { dailyCompletions: updated };
         });
 
-        // Fire API call
-        api.uncompleteTaskApi(taskId, today, userRole, userName).catch((err) => {
-          console.warn('Failed to sync uncomplete to server:', err.message);
-        });
+        // Fire API calls
+        for (const date of affectedDates) {
+          api.uncompleteTaskApi(taskId, date, userRole, userName).catch((err) => {
+            console.warn('Failed to sync uncomplete to server:', err.message);
+          });
+        }
       },
 
       isTaskCompletedToday: (taskId) => {
@@ -316,23 +341,23 @@ const useAppStore = create<AppStore>()(
         return get().completionLogs.filter((log) => log.flaggedNeedsAttention);
       },
 
-      // Getters
+      // Getters — all filtered by role visibility (sitter: property tasks, nanny: kids tasks, owner: all)
       getActiveTasks: () => {
-        return get().tasks.filter((t) => t.isActive);
+        const { tasks, userRole } = get();
+        return tasks.filter((t) => t.isActive && isTaskVisibleToRole(t, userRole));
       },
 
       getDailyTasks: () => {
-        return get().tasks.filter((t) => t.isActive && t.frequency === 'daily');
+        return get().getActiveTasks().filter((t) => t.frequency === 'daily');
       },
 
       getWeeklyTasks: () => {
-        return get().tasks.filter((t) => t.isActive && t.frequency === 'weekly');
+        return get().getActiveTasks().filter((t) => t.frequency === 'weekly');
       },
 
       getTodaysTasks: () => {
         const state = get();
-        return state.tasks.filter((t) => {
-          if (!t.isActive) return false;
+        return state.getActiveTasks().filter((t) => {
           // Include daily tasks
           if (t.frequency === 'daily') return true;
           // Include custom tasks that are due today
@@ -379,6 +404,51 @@ const useAppStore = create<AppStore>()(
             (t) => t.priority === 'critical' && !get().isTaskCompletedToday(t.id)
           );
       },
+
+      // Household calendar events
+      addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
+      updateEvent: (eventId, updates) =>
+        set((state) => ({
+          events: state.events.map((e) => (e.id === eventId ? { ...e, ...updates } : e)),
+        })),
+      deleteEvent: (eventId) =>
+        set((state) => ({ events: state.events.filter((e) => e.id !== eventId) })),
+
+      // Shopping list
+      addShoppingItem: (name) => {
+        const { userName, userRole } = get();
+        const item: ShoppingItem = {
+          id: `shop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          name: name.trim(),
+          addedBy: userName,
+          addedByRole: userRole,
+          addedAt: new Date().toISOString(),
+          purchased: false,
+        };
+        set((state) => ({ shoppingItems: [...state.shoppingItems, item] }));
+      },
+      removeShoppingItem: (itemId) =>
+        set((state) => ({
+          shoppingItems: state.shoppingItems.filter((i) => i.id !== itemId),
+        })),
+      setItemPurchased: (itemId, purchased) =>
+        set((state) => ({
+          shoppingItems: state.shoppingItems.map((i) =>
+            i.id === itemId
+              ? { ...i, purchased, purchasedAt: purchased ? new Date().toISOString() : undefined }
+              : i
+          ),
+        })),
+      markAllPurchased: () =>
+        set((state) => ({
+          shoppingItems: state.shoppingItems.map((i) =>
+            i.purchased ? i : { ...i, purchased: true, purchasedAt: new Date().toISOString() }
+          ),
+        })),
+      clearPurchasedItems: () =>
+        set((state) => ({
+          shoppingItems: state.shoppingItems.filter((i) => !i.purchased),
+        })),
 
       initializeWithSeedData: () => {
         const currentTasks = get().tasks;
@@ -467,6 +537,18 @@ const useAppStore = create<AppStore>()(
     {
       name: 'roxley-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      migrate: (persisted: any, version: number) => {
+        if (version === 0 && persisted) {
+          // v1: nanny mode added a Kids category; inject it for existing installs
+          if (Array.isArray(persisted.categories) && !persisted.categories.some((c: any) => c.id === KIDS_CATEGORY.id)) {
+            persisted.categories = [...persisted.categories, KIDS_CATEGORY];
+          }
+          if (!Array.isArray(persisted.events)) persisted.events = [];
+          if (!Array.isArray(persisted.shoppingItems)) persisted.shoppingItems = [];
+        }
+        return persisted;
+      },
     }
   )
 );

@@ -6,7 +6,7 @@ const AUTH_PIN = process.env.EXPO_PUBLIC_AUTH_PIN || "roxley2026";
 interface RequestOptions {
   method?: string;
   body?: any;
-  userRole?: "owner" | "sitter";
+  userRole?: "owner" | "sitter" | "nanny";
   userName?: string;
 }
 

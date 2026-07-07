@@ -13,6 +13,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import useAppStore from '@/lib/state/app-store';
 import {
   Task,
+  TaskAudience,
   TaskCategory,
   TaskFrequency,
   TaskPriority,
@@ -93,6 +94,7 @@ export default function EditTaskScreen() {
     sourceTask?.estimatedMinutes?.toString() ?? '10'
   );
   const [priority, setPriority] = useState<TaskPriority>(sourceTask?.priority ?? 'routine');
+  const [audience, setAudience] = useState<TaskAudience>(sourceTask?.audience ?? 'property');
 
   // New: Separate overview and steps
   const [overview, setOverview] = useState(parsedContent.overview);
@@ -131,6 +133,12 @@ export default function EditTaskScreen() {
     { id: 'critical', label: 'Critical' },
     { id: 'important', label: 'Important' },
     { id: 'routine', label: 'Routine' },
+  ];
+
+  const audiences: { id: TaskAudience; label: string }[] = [
+    { id: 'property', label: 'House Sitter' },
+    { id: 'kids', label: 'Au Pair / Nanny' },
+    { id: 'both', label: 'Both' },
   ];
 
   // Step management functions
@@ -226,6 +234,7 @@ export default function EditTaskScreen() {
       isActive,
       mediaAttachments: mediaAttachments.length > 0 ? mediaAttachments : undefined,
       howToGuideIds: selectedGuideIds.length > 0 ? selectedGuideIds : undefined,
+      audience,
     };
 
     if (isNew) {
@@ -361,6 +370,22 @@ export default function EditTaskScreen() {
                   onPress={() => setCategory(cat.id)}
                   label={cat.label}
                   color={cat.color}
+                />
+              ))}
+            </View>
+          </Animated.View>
+
+          {/* Audience — which role does this task */}
+          <Animated.View entering={FadeInDown.delay(125).duration(300)} className="mb-6">
+            <Text className="text-sm font-medium text-stone-600 mb-2">Who's it for?</Text>
+            <View className="flex-row flex-wrap">
+              {audiences.map((aud) => (
+                <OptionButton
+                  key={aud.id}
+                  selected={audience === aud.id}
+                  onPress={() => setAudience(aud.id)}
+                  label={aud.label}
+                  color={aud.id === 'kids' ? '#EC4899' : undefined}
                 />
               ))}
             </View>

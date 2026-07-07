@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import useAppStore from '@/lib/state/app-store';
-import { SeasonProfile } from '@/lib/types';
+import { SeasonProfile, UserRole, getRoleLabel } from '@/lib/types';
 import {
   Sun,
   Snowflake,
   Plane,
   Shield,
   Home,
+  Baby,
   RotateCcw,
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -21,10 +22,16 @@ export default function SettingsScreen() {
   const setSeason = useAppStore((s) => s.setSeason);
   const resetToDefaultTasks = useAppStore((s) => s.resetToDefaultTasks);
 
-  const handleRoleToggle = async () => {
+  const handleRoleSelect = async (role: UserRole) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setUserRole(userRole === 'owner' ? 'sitter' : 'owner');
+    setUserRole(role);
   };
+
+  const roles: { id: UserRole; label: string; hint: string; icon: React.ReactNode; color: string }[] = [
+    { id: 'sitter', label: 'House Sitter', hint: 'Property care tasks', icon: <Home size={20} color="#C2410C" />, color: '#FFEDD5' },
+    { id: 'nanny', label: 'Au Pair / Nanny', hint: 'Kid-related activities', icon: <Baby size={20} color="#EC4899" />, color: '#FCE7F3' },
+    { id: 'owner', label: 'Owner', hint: 'Dashboard, tasks & purchases', icon: <Shield size={20} color="#78716C" />, color: '#E7E5E4' },
+  ];
 
   const handleSeasonSelect = async (season: SeasonProfile) => {
     await Haptics.selectionAsync();
@@ -65,32 +72,49 @@ export default function SettingsScreen() {
               <View className="w-14 h-14 rounded-full bg-orange-100 items-center justify-center mr-4">
                 {userRole === 'owner' ? (
                   <Shield size={28} color="#C2410C" />
+                ) : userRole === 'nanny' ? (
+                  <Baby size={28} color="#C2410C" />
                 ) : (
                   <Home size={28} color="#C2410C" />
                 )}
               </View>
               <View className="flex-1">
                 <Text className="text-lg font-bold text-stone-800">{userName}</Text>
-                <Text className="text-sm text-stone-500 capitalize">
-                  {userRole === 'owner' ? 'Property Owner' : 'House Sitter'}
-                </Text>
+                <Text className="text-sm text-stone-500">{getRoleLabel(userRole)}</Text>
               </View>
             </View>
 
-            {/* Role Toggle */}
-            <View className="flex-row items-center justify-between pt-4 border-t border-stone-100">
-              <View>
-                <Text className="text-base font-medium text-stone-700">Owner Mode</Text>
-                <Text className="text-xs text-stone-400">
-                  Access dashboard & task management
-                </Text>
-              </View>
-              <Switch
-                value={userRole === 'owner'}
-                onValueChange={handleRoleToggle}
-                trackColor={{ false: '#D1D5DB', true: '#FDBA74' }}
-                thumbColor={userRole === 'owner' ? '#C2410C' : '#fff'}
-              />
+            {/* Role Selector */}
+            <View className="pt-4 border-t border-stone-100">
+              <Text className="text-base font-medium text-stone-700 mb-1">I'm here as…</Text>
+              <Text className="text-xs text-stone-400 mb-3">
+                Sitters see property tasks, au pairs see kid activities, the owner sees everything
+              </Text>
+              {roles.map((role) => (
+                <Pressable
+                  key={role.id}
+                  onPress={() => handleRoleSelect(role.id)}
+                  className={`flex-row items-center p-3 rounded-xl mb-2 border ${
+                    userRole === role.id ? 'bg-orange-50 border-orange-300' : 'bg-white border-stone-200'
+                  }`}
+                >
+                  <View
+                    style={{ backgroundColor: role.color }}
+                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                  >
+                    {role.icon}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base text-stone-800 font-medium">{role.label}</Text>
+                    <Text className="text-xs text-stone-400">{role.hint}</Text>
+                  </View>
+                  {userRole === role.id && (
+                    <View className="w-6 h-6 rounded-full bg-orange-500 items-center justify-center">
+                      <View className="w-2.5 h-2.5 rounded-full bg-white" />
+                    </View>
+                  )}
+                </Pressable>
+              ))}
             </View>
           </View>
         </Animated.View>

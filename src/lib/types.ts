@@ -11,6 +11,9 @@ export interface Category {
   icon: string; // Lucide icon name
 }
 
+// Kids category — added for nanny/au pair mode (also injected via store migration for existing installs)
+export const KIDS_CATEGORY: Category = { id: 'kids', label: 'Kids', color: '#EC4899', icon: 'Baby' };
+
 // Default categories for new installs
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'dog', label: 'Dog Care', color: '#8B5CF6', icon: 'Dog' },
@@ -20,12 +23,33 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'mowers', label: 'Mowers', color: '#6366F1', icon: 'Bot' },
   { id: 'property', label: 'Property', color: '#78716C', icon: 'Home' },
   { id: 'seasonal', label: 'Seasonal', color: '#EAB308', icon: 'Sun' },
+  KIDS_CATEGORY,
 ];
 
 // TaskCategory is now just a string id reference
 export type TaskCategory = string;
 export type SeasonProfile = 'summer' | 'winter' | 'away';
-export type UserRole = 'owner' | 'sitter';
+export type UserRole = 'owner' | 'sitter' | 'nanny';
+
+// Who a task is for: property care (sitter), kids (nanny/au pair), or both roles
+export type TaskAudience = 'property' | 'kids' | 'both';
+
+export function getRoleLabel(role: UserRole): string {
+  switch (role) {
+    case 'owner': return 'Property Owner';
+    case 'sitter': return 'House Sitter';
+    case 'nanny': return 'Au Pair / Nanny';
+  }
+}
+
+// Owner sees everything; sitter sees property tasks; nanny sees kids tasks.
+// Tasks without an audience are treated as property tasks (all pre-existing tasks).
+export function isTaskVisibleToRole(task: Task, role: UserRole): boolean {
+  if (role === 'owner') return true;
+  const audience = task.audience ?? 'property';
+  if (audience === 'both') return true;
+  return role === 'nanny' ? audience === 'kids' : audience === 'property';
+}
 
 // How-To Guide - reusable instructional content that can be assigned to multiple tasks
 export interface HowToGuide {
@@ -59,6 +83,43 @@ export interface Task {
   redFlagsText?: string;
   seasonProfiles?: SeasonProfile[]; // Which seasons this task appears in
   howToGuideIds?: string[]; // References to HowToGuide items
+  audience?: TaskAudience; // Who the task is for — undefined means 'property'
+}
+
+// ---- Household calendar events (bin night, rent due, appointments...) ----
+
+export type EventRecurrence = 'once' | 'weekly' | 'fortnightly' | 'monthly' | 'yearly';
+
+export interface HouseholdEvent {
+  id: string;
+  title: string;
+  emoji?: string;
+  recurrence: EventRecurrence;
+  anchorDate: string; // YYYY-MM-DD — first (or only) occurrence
+  notes?: string;
+  color?: string;
+}
+
+export function getRecurrenceLabel(recurrence: EventRecurrence): string {
+  switch (recurrence) {
+    case 'once': return 'One-off';
+    case 'weekly': return 'Weekly';
+    case 'fortnightly': return 'Fortnightly';
+    case 'monthly': return 'Monthly';
+    case 'yearly': return 'Yearly';
+  }
+}
+
+// ---- Shopping list ----
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  addedBy: string;
+  addedByRole: UserRole;
+  addedAt: string; // ISO datetime
+  purchased: boolean;
+  purchasedAt?: string; // ISO datetime
 }
 
 // Helper to convert legacy description to steps
