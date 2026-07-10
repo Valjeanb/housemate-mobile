@@ -4,21 +4,22 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import useAppStore from '@/lib/state/app-store';
 import TaskCard from '@/components/TaskCard';
-import { Task, getCategoryColor } from '@/lib/types';
+import { Task, getCategoryColor, isTaskVisibleToRole } from '@/lib/types';
 import { CalendarDays, CheckCircle2 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function WeeklyScreen() {
   const router = useRouter();
   const tasks = useAppStore((s) => s.tasks);
+  const userRole = useAppStore((s) => s.userRole);
   const completeTask = useAppStore((s) => s.completeTask);
   const uncompleteTask = useAppStore((s) => s.uncompleteTask);
   const isTaskCompletedThisWeek = useAppStore((s) => s.isTaskCompletedThisWeek);
 
-  // Get weekly tasks
+  // Get weekly tasks visible to the current role
   const weeklyTasks = useMemo(() => {
-    return tasks.filter((t) => t.isActive && t.frequency === 'weekly');
-  }, [tasks]);
+    return tasks.filter((t) => t.isActive && t.frequency === 'weekly' && isTaskVisibleToRole(t, userRole));
+  }, [tasks, userRole]);
 
   // Group by category
   const tasksByCategory = useMemo(() => {

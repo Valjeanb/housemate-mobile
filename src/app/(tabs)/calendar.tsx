@@ -47,7 +47,7 @@ export default function CalendarScreen() {
 
   const isOwner = userRole === 'owner';
 
-  const monthCells: DayCell[] = useMemo(() => {
+  const monthWeeks: DayCell[][] = useMemo(() => {
     const year = monthAnchor.getFullYear();
     const month = monthAnchor.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -63,18 +63,22 @@ export default function CalendarScreen() {
     while (cells.length % 7 !== 0) {
       cells.push({ dateString: null, dayNumber: null });
     }
-    return cells;
+    const weeks: DayCell[][] = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      weeks.push(cells.slice(i, i + 7));
+    }
+    return weeks;
   }, [monthAnchor]);
 
   const eventsByDate = useMemo(() => {
     const map: Record<string, HouseholdEvent[]> = {};
-    for (const cell of monthCells) {
+    for (const cell of monthWeeks.flat()) {
       if (!cell.dateString) continue;
       const dayEvents = events.filter((e) => eventOccursOn(e, cell.dateString!));
       if (dayEvents.length > 0) map[cell.dateString] = dayEvents;
     }
     return map;
-  }, [monthCells, events]);
+  }, [monthWeeks, events]);
 
   const selectedDayEvents = useMemo(
     () => getEventsForDate(events, selectedDate),
@@ -165,55 +169,56 @@ export default function CalendarScreen() {
               ))}
             </View>
 
-            {/* Day grid */}
-            <View className="flex-row flex-wrap">
-              {monthCells.map((cell, index) => {
-                if (!cell.dateString) {
-                  return <View key={`blank-${index}`} style={{ width: `${100 / 7}%` }} className="aspect-square" />;
-                }
-                const isToday = cell.dateString === todayString;
-                const isSelected = cell.dateString === selectedDate;
-                const dayEvents = eventsByDate[cell.dateString] ?? [];
-                return (
-                  <Pressable
-                    key={cell.dateString}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      setSelectedDate(cell.dateString!);
-                    }}
-                    style={{ width: `${100 / 7}%` }}
-                    className="aspect-square items-center justify-center"
-                  >
-                    <View
-                      className={`w-9 h-9 rounded-full items-center justify-center ${
-                        isSelected ? 'bg-orange-600' : isToday ? 'bg-orange-100' : ''
-                      }`}
+            {/* Day grid — explicit week rows so cells never wrap misaligned */}
+            {monthWeeks.map((week, weekIndex) => (
+              <View key={`week-${weekIndex}`} className="flex-row">
+                {week.map((cell, dayIndex) => {
+                  if (!cell.dateString) {
+                    return <View key={`blank-${weekIndex}-${dayIndex}`} className="flex-1 py-1" />;
+                  }
+                  const isToday = cell.dateString === todayString;
+                  const isSelected = cell.dateString === selectedDate;
+                  const dayEvents = eventsByDate[cell.dateString] ?? [];
+                  return (
+                    <Pressable
+                      key={cell.dateString}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setSelectedDate(cell.dateString!);
+                      }}
+                      className="flex-1 items-center py-1"
                     >
-                      <Text
-                        className={`text-sm ${
-                          isSelected
-                            ? 'text-white font-bold'
-                            : isToday
-                            ? 'text-orange-700 font-bold'
-                            : 'text-stone-700'
+                      <View
+                        className={`w-9 h-9 rounded-full items-center justify-center ${
+                          isSelected ? 'bg-orange-600' : isToday ? 'bg-orange-100' : ''
                         }`}
                       >
-                        {cell.dayNumber}
-                      </Text>
-                    </View>
-                    <View className="flex-row h-2 items-center">
-                      {dayEvents.slice(0, 3).map((e) => (
-                        <View
-                          key={e.id}
-                          style={{ backgroundColor: e.color ?? '#65A30D' }}
-                          className="w-1.5 h-1.5 rounded-full mx-0.5"
-                        />
-                      ))}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
+                        <Text
+                          className={`text-sm ${
+                            isSelected
+                              ? 'text-white font-bold'
+                              : isToday
+                              ? 'text-orange-700 font-bold'
+                              : 'text-stone-700'
+                          }`}
+                        >
+                          {cell.dayNumber}
+                        </Text>
+                      </View>
+                      <View className="flex-row h-2 items-center">
+                        {dayEvents.slice(0, 3).map((e) => (
+                          <View
+                            key={e.id}
+                            style={{ backgroundColor: e.color ?? '#65A30D' }}
+                            className="w-1.5 h-1.5 rounded-full mx-0.5"
+                          />
+                        ))}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         </Animated.View>
 

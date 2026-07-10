@@ -14,15 +14,16 @@ export default function TodayScreen() {
   const router = useRouter();
   const tasks = useAppStore((s) => s.tasks);
   const dailyCompletions = useAppStore((s) => s.dailyCompletions);
+  const userRole = useAppStore((s) => s.userRole);
   const completeTask = useAppStore((s) => s.completeTask);
   const uncompleteTask = useAppStore((s) => s.uncompleteTask);
   const isTaskCompletedToday = useAppStore((s) => s.isTaskCompletedToday);
   const getTodaysTasks = useAppStore((s) => s.getTodaysTasks);
 
-  // Get today's tasks (daily + custom tasks due today)
+  // Get today's tasks (daily + custom tasks due today, filtered for the current role)
   const todaysTasks = useMemo(() => {
     return getTodaysTasks();
-  }, [tasks, dailyCompletions, getTodaysTasks]);
+  }, [tasks, dailyCompletions, userRole, getTodaysTasks]);
 
   // Group by time of day
   const tasksByTime = useMemo(() => {
