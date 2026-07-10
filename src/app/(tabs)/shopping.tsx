@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, TextInput, Alert, Share, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, TextInput, Alert, Share, Linking, Modal } from 'react-native';
 import useAppStore from '@/lib/state/app-store';
 import { ShoppingItem, getRoleLabel } from '@/lib/types';
 import { Plus, X, Check, ShoppingCart, ExternalLink, Trash2 } from 'lucide-react-native';
@@ -25,6 +25,7 @@ export default function ShoppingScreen() {
   const clearPurchasedItems = useAppStore((s) => s.clearPurchasedItems);
 
   const [newItemName, setNewItemName] = useState<string>('');
+  const [purchaseSheetVisible, setPurchaseSheetVisible] = useState<boolean>(false);
 
   const isOwner = userRole === 'owner';
   const toBuy = useMemo(() => shoppingItems.filter((i) => !i.purchased), [shoppingItems]);
@@ -38,7 +39,10 @@ export default function ShoppingScreen() {
 
   const handleAdd = () => {
     const name = newItemName.trim();
-    if (!name) return;
+    if (!name) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     addShoppingItem(name);
     setNewItemName('');
@@ -54,35 +58,33 @@ export default function ShoppingScreen() {
     setItemPurchased(item.id, !item.purchased);
   };
 
+  // A bottom-sheet Modal instead of Alert.alert: Android silently drops the 4th
+  // (Cancel) button from alerts and won't dismiss on back — the dialog became a trap.
   const handlePurchase = () => {
     if (toBuy.length === 0) {
       Alert.alert('Nothing to buy', 'The shopping list is empty.');
       return;
     }
-    Alert.alert('Purchase list', `${toBuy.length} item${toBuy.length === 1 ? '' : 's'} to buy`, [
-      {
-        text: 'Copy list & open Coles',
-        onPress: async () => {
-          await Clipboard.setStringAsync(formatList(toBuy));
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Linking.openURL(COLES_URL);
-        },
-      },
-      {
-        text: 'Share list…',
-        onPress: () => {
-          Share.share({ message: `Shopping list:\n${formatList(toBuy)}` });
-        },
-      },
-      {
-        text: 'Mark all purchased',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          markAllPurchased();
-        },
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPurchaseSheetVisible(true);
+  };
+
+  const handleCopyAndOpenColes = async () => {
+    setPurchaseSheetVisible(false);
+    await Clipboard.setStringAsync(formatList(toBuy));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Linking.openURL(COLES_URL);
+  };
+
+  const handleShareList = () => {
+    setPurchaseSheetVisible(false);
+    Share.share({ message: `Shopping list:\n${formatList(toBuy)}` });
+  };
+
+  const handleMarkAllPurchased = () => {
+    setPurchaseSheetVisible(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    markAllPurchased();
   };
 
   const handleClearPurchased = () => {
@@ -249,6 +251,54 @@ export default function ShoppingScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Purchase actions bottom sheet */}
+      <Modal
+        visible={purchaseSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPurchaseSheetVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end bg-black/40"
+          onPress={() => setPurchaseSheetVisible(false)}
+        >
+          <Pressable className="bg-white rounded-t-3xl p-6 pb-10" onPress={() => {}}>
+            <Text className="text-lg font-bold text-stone-800 mb-1">Purchase list</Text>
+            <Text className="text-sm text-stone-500 mb-5">
+              {toBuy.length} item{toBuy.length === 1 ? '' : 's'} to buy
+            </Text>
+
+            <Pressable
+              onPress={handleCopyAndOpenColes}
+              className="bg-lime-600 rounded-xl py-4 items-center mb-3 active:bg-lime-700"
+            >
+              <Text className="text-white font-bold text-base">Copy list & open Coles</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleShareList}
+              className="border border-stone-300 rounded-xl py-4 items-center mb-3 active:bg-stone-50"
+            >
+              <Text className="text-stone-700 font-medium text-base">Share list…</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleMarkAllPurchased}
+              className="border border-stone-300 rounded-xl py-4 items-center mb-3 active:bg-stone-50"
+            >
+              <Text className="text-stone-700 font-medium text-base">Mark all purchased</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setPurchaseSheetVisible(false)}
+              className="py-3 items-center active:opacity-60"
+            >
+              <Text className="text-stone-400 font-medium">Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

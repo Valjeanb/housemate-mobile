@@ -52,7 +52,14 @@ export default function OwnerDashboardScreen() {
       setAiPrompt('');
       router.push('/edit-task/new');
     } catch (err: any) {
-      setAiError(err.message || 'AI generation failed');
+      const raw: string = err?.message ?? '';
+      let friendly = 'AI generation failed — check the internet connection and try again.';
+      if (raw.includes('credit balance is too low')) {
+        friendly = 'The AI account is out of credits. The Anthropic API key on the server needs a top-up or replacement before Generate Task will work.';
+      } else if (raw.includes('Network request failed')) {
+        friendly = "Can't reach the Housemate server — check the internet connection.";
+      }
+      setAiError(friendly);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setAiLoading(false);

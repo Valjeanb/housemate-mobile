@@ -90,8 +90,9 @@ export default function EditTaskScreen() {
     sourceTask?.customIntervalDays?.toString() ?? '3'
   );
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(sourceTask?.timeOfDay ?? 'anytime');
+  const [hasDuration, setHasDuration] = useState<boolean>(!!sourceTask?.estimatedMinutes);
   const [estimatedMinutes, setEstimatedMinutes] = useState(
-    sourceTask?.estimatedMinutes?.toString() ?? '10'
+    sourceTask?.estimatedMinutes?.toString() ?? '30'
   );
   const [priority, setPriority] = useState<TaskPriority>(sourceTask?.priority ?? 'routine');
   const [audience, setAudience] = useState<TaskAudience>(sourceTask?.audience ?? 'property');
@@ -221,7 +222,7 @@ export default function EditTaskScreen() {
       frequency,
       customIntervalDays: frequency === 'custom' ? parseInt(customIntervalDays, 10) || 3 : undefined,
       timeOfDay,
-      estimatedMinutes: parseInt(estimatedMinutes, 10) || 10,
+      estimatedMinutes: hasDuration ? parseInt(estimatedMinutes, 10) || undefined : undefined,
       priority,
       overview: overview.trim(),
       steps: filteredSteps,
@@ -407,17 +408,45 @@ export default function EditTaskScreen() {
             </View>
           </Animated.View>
 
-          {/* Estimated Time */}
+          {/* Duration — optional, for longer jobs like "tie up tomatoes" */}
           <Animated.View entering={FadeInDown.delay(200).duration(300)} className="mb-6">
-            <Text className="text-sm font-medium text-stone-600 mb-2">Estimated Minutes</Text>
-            <TextInput
-              value={estimatedMinutes}
-              onChangeText={setEstimatedMinutes}
-              keyboardType="number-pad"
-              placeholder="10"
-              placeholderTextColor="#9CA3AF"
-              className="bg-white rounded-xl p-4 text-stone-800 text-base border border-stone-200 w-24"
-            />
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                setHasDuration(!hasDuration);
+              }}
+              className={`flex-row items-center p-4 rounded-xl border ${
+                hasDuration ? 'bg-blue-50 border-blue-200' : 'bg-white border-stone-200'
+              }`}
+            >
+              <View
+                className={`w-6 h-6 rounded-md border-2 items-center justify-center mr-3 ${
+                  hasDuration ? 'border-blue-500 bg-blue-500' : 'border-stone-300'
+                }`}
+              >
+                {hasDuration && <Check size={14} color="#fff" strokeWidth={3} />}
+              </View>
+              <View className="flex-1">
+                <Text className="text-base text-stone-800">Set a duration</Text>
+                <Text className="text-xs text-stone-400">
+                  For longer jobs, show how many minutes to allow
+                </Text>
+              </View>
+            </Pressable>
+
+            {hasDuration && (
+              <View className="mt-3 flex-row items-center">
+                <TextInput
+                  value={estimatedMinutes}
+                  onChangeText={setEstimatedMinutes}
+                  keyboardType="number-pad"
+                  placeholder="30"
+                  placeholderTextColor="#9CA3AF"
+                  className="bg-white rounded-xl p-4 text-stone-800 text-base border border-stone-200 w-24 text-center"
+                />
+                <Text className="text-sm text-stone-600 ml-2">minutes</Text>
+              </View>
+            )}
           </Animated.View>
 
           {/* Instructions Section */}

@@ -1,9 +1,9 @@
-// Housemate - Seed Tasks Data
+﻿// Housemate - Seed Tasks Data
 
 import { Task } from './types';
 
 export const seedTasks: Task[] = [
-  // 🐕 Dog – Scout (CRITICAL)
+  // ðŸ• Dog â€“ Scout (CRITICAL)
   // Note: Two separate tasks for morning and evening, but instructions are the same
   {
     id: 'dog-morning',
@@ -11,7 +11,6 @@ export const seedTasks: Task[] = [
     category: 'dog',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 5,
     overview: 'Feed Scout his meal and ensure fresh water is available.',
     steps: [
       'Measure 1 cup of dry food into Scout\'s bowl',
@@ -30,11 +29,11 @@ export const seedTasks: Task[] = [
 5. Give Scout a quick pat and check he's eating normally`,
     priority: 'critical',
     requiresMedication: true,
-    medicationText: "Add Scout's tablet if provided – check the labeled container on the kitchen counter",
+    medicationText: "Add Scout's tablet if provided â€“ check the labeled container on the kitchen counter",
     requiresPhoto: false,
     isActive: true,
     doneProperlyText: 'Scout has eaten his food, medication given if applicable, water bowl is full and fresh',
-    redFlagsText: 'Scout not eating, vomiting, lethargic behavior, or unusual discharge – contact owner immediately',
+    redFlagsText: 'Scout not eating, vomiting, lethargic behavior, or unusual discharge â€“ contact owner immediately',
   },
   {
     id: 'dog-evening',
@@ -42,7 +41,6 @@ export const seedTasks: Task[] = [
     category: 'dog',
     frequency: 'daily',
     timeOfDay: 'evening',
-    estimatedMinutes: 5,
     overview: 'Feed Scout his meal and ensure fresh water is available.',
     steps: [
       'Measure 1 cup of dry food into Scout\'s bowl',
@@ -65,22 +63,21 @@ export const seedTasks: Task[] = [
     requiresPhoto: false,
     isActive: true,
     doneProperlyText: 'Scout has eaten his food, medication given if applicable, water bowl is full',
-    redFlagsText: 'Scout not eating, seems unwell, or any unusual behavior – contact owner immediately',
+    redFlagsText: 'Scout not eating, seems unwell, or any unusual behavior â€“ contact owner immediately',
   },
 
-  // 🐔 Chickens (IMPORTANT)
+  // ðŸ” Chickens (IMPORTANT)
   {
     id: 'chickens-morning',
     title: 'Chicken care',
     category: 'chickens',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 10,
     overview: 'Daily care for the chickens.',
     steps: [
       'Open the coop door to let chickens out',
       'Fill feeder with layer pellets (scoop is in the feed bin)',
-      'Check and refill water – clean if dirty',
+      'Check and refill water â€“ clean if dirty',
       'Quick health check: are all chickens moving normally? Eyes clear? No injuries?',
       'Check for any predator damage to coop or run',
     ],
@@ -89,7 +86,7 @@ export const seedTasks: Task[] = [
 **Steps:**
 1. Open the coop door to let chickens out
 2. Fill feeder with layer pellets (scoop is in the feed bin)
-3. Check and refill water – clean if dirty
+3. Check and refill water â€“ clean if dirty
 4. Quick health check: are all chickens moving normally? Eyes clear? No injuries?
 5. Check for any predator damage to coop or run`,
     priority: 'important',
@@ -105,7 +102,6 @@ export const seedTasks: Task[] = [
     category: 'chickens',
     frequency: 'daily',
     timeOfDay: 'anytime',
-    estimatedMinutes: 5,
     overview: 'Collect eggs from the nesting boxes.',
     steps: [
       'Check all nesting boxes for eggs',
@@ -130,29 +126,28 @@ export const seedTasks: Task[] = [
     redFlagsText: 'Soft-shelled eggs repeatedly, blood in eggs, or drastically reduced laying',
   },
 
-  // 🐠 Aquariums (IMPORTANT)
+  // ðŸ  Aquariums (IMPORTANT)
   {
     id: 'aquarium-daily',
     title: 'Aquarium care',
     category: 'aquarium',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 10,
     overview: 'Feed the fish and check aquarium equipment.',
     steps: [
-      'Feed fish – small pinch of flakes, they should eat it all within 2-3 minutes',
+      'Feed fish â€“ small pinch of flakes, they should eat it all within 2-3 minutes',
       'Check all pumps are running (you should see water movement)',
       'Check heater lights are on',
-      'Check water level – top up with treated water if low (see container)',
+      'Check water level â€“ top up with treated water if low (see container)',
       'Quick visual check: all fish present and swimming normally?',
     ],
     description: `Feed the fish and check aquarium equipment.
 
 **Steps:**
-1. Feed fish – small pinch of flakes, they should eat it all within 2-3 minutes
+1. Feed fish â€“ small pinch of flakes, they should eat it all within 2-3 minutes
 2. Check all pumps are running (you should see water movement)
 3. Check heater lights are on
-4. Check water level – top up with treated water if low (see container)
+4. Check water level â€“ top up with treated water if low (see container)
 5. Quick visual check: all fish present and swimming normally?`,
     priority: 'important',
     requiresMedication: false,
@@ -167,7 +162,6 @@ export const seedTasks: Task[] = [
     category: 'aquarium',
     frequency: 'weekly',
     timeOfDay: 'anytime',
-    estimatedMinutes: 15,
     overview: 'Clean the aquarium glass and check equipment.',
     steps: [
       'Use the algae scraper to clean inside glass',
@@ -192,20 +186,19 @@ export const seedTasks: Task[] = [
     redFlagsText: 'Equipment malfunction, unusual smells, persistent cloudiness',
   },
 
-  // 🌱 Vegetable Garden (IMPORTANT)
+  // ðŸŒ± Vegetable Garden (IMPORTANT)
   {
     id: 'garden-daily',
     title: 'Garden check & water',
     category: 'garden',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 15,
     overview: 'Check the garden and water as needed.',
     steps: [
       'Check irrigation system is working (look for wet soil near drippers)',
       'Hand water any dry spots or pots not on irrigation',
       'Check for obviously ripe vegetables and harvest them',
-      'Quick pest check – look for large insects or obvious damage',
+      'Quick pest check â€“ look for large insects or obvious damage',
       'Place harvested produce in the kitchen',
     ],
     description: `Check the garden and water as needed.
@@ -214,7 +207,7 @@ export const seedTasks: Task[] = [
 1. Check irrigation system is working (look for wet soil near drippers)
 2. Hand water any dry spots or pots not on irrigation
 3. Check for obviously ripe vegetables and harvest them
-4. Quick pest check – look for large insects or obvious damage
+4. Quick pest check â€“ look for large insects or obvious damage
 5. Place harvested produce in the kitchen`,
     priority: 'important',
     requiresMedication: false,
@@ -229,7 +222,6 @@ export const seedTasks: Task[] = [
     category: 'garden',
     frequency: 'weekly',
     timeOfDay: 'anytime',
-    estimatedMinutes: 20,
     overview: 'Tidy the garden, support plants, and remove weeds.',
     steps: [
       'Tie up any climbing plants to trellises',
@@ -254,14 +246,13 @@ export const seedTasks: Task[] = [
     redFlagsText: 'Widespread disease, structural damage to beds, irrigation leaks',
   },
 
-  // 🤖 Robot Mowers (ROUTINE)
+  // ðŸ¤– Robot Mowers (ROUTINE)
   {
     id: 'mower-check',
     title: 'Robot mower check',
     category: 'mowers',
     frequency: 'daily',
     timeOfDay: 'anytime',
-    estimatedMinutes: 5,
     overview: 'Quick check on the robot mowers.',
     steps: [
       'Check mower is either docked (charging) or running',
@@ -286,14 +277,13 @@ export const seedTasks: Task[] = [
     redFlagsText: 'Error message displayed, mower stuck, not charging',
   },
 
-  // ⚡ Property & Grounds (IMPORTANT)
+  // âš¡ Property & Grounds (IMPORTANT)
   {
     id: 'property-walkaround',
     title: 'Property walk-around',
     category: 'property',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 10,
     overview: 'Walk the property and check for any issues.',
     steps: [
       'Walk the perimeter of the main buildings',
@@ -325,7 +315,6 @@ export const seedTasks: Task[] = [
     category: 'property',
     frequency: 'weekly',
     timeOfDay: 'anytime',
-    estimatedMinutes: 15,
     overview: 'Clear leaves and debris from the deck.',
     steps: [
       'Get leaf blower from shed',
@@ -350,20 +339,19 @@ export const seedTasks: Task[] = [
     redFlagsText: 'Blower not working, deck damage noticed',
   },
 
-  // 🌞 Seasonal Tasks (Owner-controlled)
+  // ðŸŒž Seasonal Tasks (Owner-controlled)
   {
     id: 'pool-maintenance',
     title: 'Pool maintenance',
     category: 'seasonal',
     frequency: 'daily',
     timeOfDay: 'morning',
-    estimatedMinutes: 15,
     overview: 'Skim the pool and check equipment.',
     steps: [
       'Skim surface for leaves and debris',
       'Check pump is running',
       'Empty skimmer basket if needed',
-      'Check water level – should be mid-tile',
+      'Check water level â€“ should be mid-tile',
       'Note water clarity in completion notes',
     ],
     description: `Skim the pool and check equipment.
@@ -372,7 +360,7 @@ export const seedTasks: Task[] = [
 1. Skim surface for leaves and debris
 2. Check pump is running
 3. Empty skimmer basket if needed
-4. Check water level – should be mid-tile
+4. Check water level â€“ should be mid-tile
 5. Note water clarity in completion notes`,
     priority: 'important',
     requiresMedication: false,
@@ -388,7 +376,6 @@ export const seedTasks: Task[] = [
     category: 'seasonal',
     frequency: 'weekly',
     timeOfDay: 'anytime',
-    estimatedMinutes: 30,
     overview: 'Move and stack delivered firewood.',
     steps: [
       'Transfer wood from delivery pile to woodshed',
@@ -419,7 +406,6 @@ export const seedTasks: Task[] = [
     category: 'seasonal',
     frequency: 'weekly',
     timeOfDay: 'morning',
-    estimatedMinutes: 20,
     overview: 'Inspect the irrigation system for leaks and coverage.',
     steps: [
       'Walk each irrigation zone while running',

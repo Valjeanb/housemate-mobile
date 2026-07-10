@@ -55,10 +55,10 @@ export default function TodayScreen() {
     const criticalMissed = todaysTasks.filter(
       (t) => t.priority === 'critical' && !isTaskCompletedToday(t.id)
     ).length;
-    const totalMinutes = todaysTasks.reduce((sum, t) => sum + t.estimatedMinutes, 0);
+    const totalMinutes = todaysTasks.reduce((sum, t) => sum + (t.estimatedMinutes ?? 0), 0);
     const remainingMinutes = todaysTasks
       .filter((t) => !isTaskCompletedToday(t.id))
-      .reduce((sum, t) => sum + t.estimatedMinutes, 0);
+      .reduce((sum, t) => sum + (t.estimatedMinutes ?? 0), 0);
 
     return {
       total,
@@ -132,12 +132,16 @@ export default function TodayScreen() {
           </View>
 
           <View className="flex-row justify-between mt-4">
-            <View>
-              <Text className="text-white/70 text-xs">Time remaining</Text>
-              <Text className="text-white text-lg font-semibold">
-                ~{stats.remainingMinutes} min
-              </Text>
-            </View>
+            {stats.remainingMinutes > 0 ? (
+              <View>
+                <Text className="text-white/70 text-xs">Time remaining</Text>
+                <Text className="text-white text-lg font-semibold">
+                  ~{stats.remainingMinutes} min
+                </Text>
+              </View>
+            ) : (
+              <View />
+            )}
             {stats.criticalMissed > 0 && (
               <View className="bg-red-500/30 px-3 py-1 rounded-full flex-row items-center">
                 <AlertTriangle size={14} color="#fff" />

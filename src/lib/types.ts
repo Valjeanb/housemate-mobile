@@ -67,7 +67,7 @@ export interface Task {
   frequency: TaskFrequency;
   customIntervalDays?: number; // Used when frequency is 'custom'
   timeOfDay: TimeOfDay;
-  estimatedMinutes: number;
+  estimatedMinutes?: number; // Optional — owner can set a duration for longer tasks
   // New structure: overview + steps array for better editing
   overview?: string; // Brief description of what this task is about
   steps?: string[]; // Array of steps - auto-numbered in UI

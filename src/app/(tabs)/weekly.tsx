@@ -45,10 +45,10 @@ export default function WeeklyScreen() {
   const stats = useMemo(() => {
     const total = weeklyTasks.length;
     const completed = weeklyTasks.filter((t) => isTaskCompletedThisWeek(t.id)).length;
-    const totalMinutes = weeklyTasks.reduce((sum, t) => sum + t.estimatedMinutes, 0);
+    const totalMinutes = weeklyTasks.reduce((sum, t) => sum + (t.estimatedMinutes ?? 0), 0);
     const remainingMinutes = weeklyTasks
       .filter((t) => !isTaskCompletedThisWeek(t.id))
-      .reduce((sum, t) => sum + t.estimatedMinutes, 0);
+      .reduce((sum, t) => sum + (t.estimatedMinutes ?? 0), 0);
 
     return {
       total,

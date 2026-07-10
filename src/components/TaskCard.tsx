@@ -96,11 +96,13 @@ export default function TaskCard({ task, isCompleted, onPress, onToggleComplete 
               </Text>
             </View>
 
-            {/* Time estimate */}
-            <View className="flex-row items-center">
-              <Clock size={12} color="#9CA3AF" />
-              <Text className="text-xs text-stone-400 ml-1">{task.estimatedMinutes} min</Text>
-            </View>
+            {/* Time estimate — only when the owner set a duration */}
+            {!!task.estimatedMinutes && (
+              <View className="flex-row items-center">
+                <Clock size={12} color="#9CA3AF" />
+                <Text className="text-xs text-stone-400 ml-1">{task.estimatedMinutes} min</Text>
+              </View>
+            )}
           </View>
 
           {/* Title */}

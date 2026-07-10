@@ -455,33 +455,45 @@ const useAppStore = create<AppStore>()(
         if (currentTasks.length === 0) {
           set({ tasks: seedTasks });
         }
+        // Safety net: the Kids category must always exist for nanny mode
+        // (older server syncs could wipe it before sync was made non-destructive)
+        if (!get().categories.some((c) => c.id === KIDS_CATEGORY.id)) {
+          set((state) => ({ categories: [...state.categories, KIDS_CATEGORY] }));
+        }
       },
 
       resetToDefaultTasks: () => {
         set({ tasks: seedTasks, dailyCompletions: {}, completionLogs: [] });
       },
 
-      // Server sync — replaces local state with server data
+      // Server sync — LOCAL-FIRST. The write path for task/category edits was never
+      // built (owner edits don't reach the server), so applying server tasks/categories/
+      // season here would overwrite local work with stale data every launch and every
+      // 15s poll. Until proper two-way sync exists, this device's data is the truth:
+      // only completions are merged in (additively), never tasks or categories.
       syncFromServer: (data) => {
-        set({
-          tasks: data.tasks,
-          categories: data.categories.map((c: any) => ({
-            id: c.id,
-            label: c.label,
-            color: c.color,
-            icon: c.icon,
-          })),
-          dailyCompletions: data.dailyCompletions,
-          completionLogs: data.completionLogs,
-          currentSeason: data.currentSeason as SeasonProfile,
-          isOnline: true,
-          lastSyncAt: data.lastModified,
+        set((state) => {
+          const merged = { ...state.dailyCompletions };
+          for (const [date, ids] of Object.entries(data.dailyCompletions ?? {})) {
+            merged[date] = Array.from(new Set([...(merged[date] ?? []), ...ids]));
+          }
+          const existingLogIds = new Set(state.completionLogs.map((l) => l.id));
+          const newLogs = (data.completionLogs ?? []).filter((l: any) => !existingLogIds.has(l.id));
+          return {
+            dailyCompletions: merged,
+            completionLogs: newLogs.length > 0 ? [...state.completionLogs, ...newLogs] : state.completionLogs,
+            isOnline: true,
+            lastSyncAt: data.lastModified,
+          };
         });
       },
 
-      // Merge incremental sync update
+      // Merge incremental sync update — completions only, additive (see note above)
       mergeSyncUpdate: (data) => {
-        if (!data.changed) return;
+        if (!data.changed) {
+          set({ isOnline: true, lastSyncAt: data.lastModified });
+          return;
+        }
 
         set((state) => {
           const updates: Partial<AppStore> = {
@@ -489,30 +501,12 @@ const useAppStore = create<AppStore>()(
             lastSyncAt: data.lastModified,
           };
 
-          // Merge updated tasks
-          if (data.updatedTasks && data.updatedTasks.length > 0) {
-            const taskMap = new Map(state.tasks.map((t) => [t.id, t]));
-            for (const task of data.updatedTasks) {
-              taskMap.set(task.id, task);
-            }
-            updates.tasks = Array.from(taskMap.values());
-          }
-
-          // Update categories
-          if (data.categories) {
-            updates.categories = data.categories.map((c: any) => ({
-              id: c.id,
-              label: c.label,
-              color: c.color,
-              icon: c.icon,
-            }));
-          }
-
-          // Update today's completions
+          // Union today's completions (never remove local optimistic ticks)
           if (data.todayDate && data.todayCompletions) {
+            const local = state.dailyCompletions[data.todayDate] ?? [];
             updates.dailyCompletions = {
               ...state.dailyCompletions,
-              [data.todayDate]: data.todayCompletions,
+              [data.todayDate]: Array.from(new Set([...local, ...data.todayCompletions])),
             };
           }
 
@@ -525,11 +519,6 @@ const useAppStore = create<AppStore>()(
             }
           }
 
-          // Update season
-          if (data.currentSeason) {
-            updates.currentSeason = data.currentSeason as SeasonProfile;
-          }
-
           return updates as any;
         });
       },
@@ -537,15 +526,24 @@ const useAppStore = create<AppStore>()(
     {
       name: 'roxley-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 1,
+      version: 2,
       migrate: (persisted: any, version: number) => {
-        if (version === 0 && persisted) {
+        if (version < 1 && persisted) {
           // v1: nanny mode added a Kids category; inject it for existing installs
           if (Array.isArray(persisted.categories) && !persisted.categories.some((c: any) => c.id === KIDS_CATEGORY.id)) {
             persisted.categories = [...persisted.categories, KIDS_CATEGORY];
           }
           if (!Array.isArray(persisted.events)) persisted.events = [];
           if (!Array.isArray(persisted.shoppingItems)) persisted.shoppingItems = [];
+        }
+        if (version < 2 && persisted) {
+          // v2: task durations became opt-in — strip the old template-era estimates
+          if (Array.isArray(persisted.tasks)) {
+            persisted.tasks = persisted.tasks.map((t: any) => {
+              const { estimatedMinutes, ...rest } = t;
+              return rest;
+            });
+          }
         }
         return persisted;
       },

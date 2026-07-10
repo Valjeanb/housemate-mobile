@@ -219,12 +219,16 @@ export default function TaskManagerScreen() {
                             {getPriorityLabel(task.priority)}
                           </Text>
                         </View>
-                        <Clock size={12} color="#9CA3AF" />
-                        <Text className="text-xs text-stone-400 ml-1">
-                          {task.estimatedMinutes} min
-                        </Text>
+                        {!!task.estimatedMinutes && (
+                          <>
+                            <Clock size={12} color="#9CA3AF" />
+                            <Text className="text-xs text-stone-400 ml-1">
+                              {task.estimatedMinutes} min •
+                            </Text>
+                          </>
+                        )}
                         <Text className="text-xs text-stone-400 ml-2">
-                          • {getFrequencyLabel(task.frequency, task.customIntervalDays)}
+                          {getFrequencyLabel(task.frequency, task.customIntervalDays)}
                         </Text>
                       </View>
                     </View>

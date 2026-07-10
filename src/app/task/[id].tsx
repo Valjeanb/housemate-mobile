@@ -134,10 +134,12 @@ export default function TaskDetailScreen() {
                     {getPriorityLabel(task.priority).toUpperCase()}
                   </Text>
                 </View>
-                <View className="flex-row items-center bg-white/20 px-3 py-1 rounded-full">
-                  <Clock size={12} color="#fff" />
-                  <Text className="text-white text-xs ml-1">{task.estimatedMinutes} min</Text>
-                </View>
+                {!!task.estimatedMinutes && (
+                  <View className="flex-row items-center bg-white/20 px-3 py-1 rounded-full">
+                    <Clock size={12} color="#fff" />
+                    <Text className="text-white text-xs ml-1">{task.estimatedMinutes} min</Text>
+                  </View>
+                )}
               </View>
 
               {/* Edit button for owners */}
